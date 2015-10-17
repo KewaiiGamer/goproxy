@@ -100,7 +100,6 @@ func (proxy *ProxyHttpServer) handleHttps(w http.ResponseWriter, r *http.Request
 		proxyClient.Write([]byte("HTTP/1.0 200 OK\r\n\r\n"))
 
 		pipeAndClose(ctx, targetSiteCon, proxyClient)
-
 	case ConnectHijack:
 		ctx.Logf("Hijacking CONNECT to %s", host)
 		proxyClient.Write([]byte("HTTP/1.0 200 OK\r\n\r\n"))
@@ -244,6 +243,8 @@ func (proxy *ProxyHttpServer) handleHttps(w http.ResponseWriter, r *http.Request
 		}
 		proxyClient.Close()
 	}
+	proxy.callOnClose(ctx)
+
 }
 
 func httpError(w io.WriteCloser, ctx *ProxyCtx, err error) {
@@ -271,12 +272,12 @@ func pipeAndClose(ctx *ProxyCtx, targetSiteCon, proxyClient net.Conn) {
 	for closedConns < 2 {
 		select {
 		case bytes := <-upCh:
-			ctx.bytesUpstream += bytes
+			ctx.BytesUpstream += bytes
 			closedConns++
 			targetSiteCon.SetReadDeadline(time.Now())
 
 		case bytes := <-downCh:
-			ctx.bytesDownstream += bytes
+			ctx.BytesDownstream += bytes
 			closedConns++
 			proxyClient.SetReadDeadline(time.Now())
 		}

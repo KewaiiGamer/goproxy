@@ -23,6 +23,7 @@ type ProxyHttpServer struct {
 	reqHandlers     []ReqHandler
 	respHandlers    []RespHandler
 	httpsHandlers   []HttpsHandler
+	closeHandlers   []CloseHandler
 	Tr              *http.Transport
 	// ConnectDial will be used to create TCP connections for CONNECT requests
 	// if nil Tr.Dial will be used
@@ -30,6 +31,20 @@ type ProxyHttpServer struct {
 }
 
 var hasPort = regexp.MustCompile(`:\d+$`)
+
+// Handlers to call when the connection (http or https) is closed
+type CloseHandler func(*ProxyCtx)
+
+func (proxy *ProxyHttpServer) OnClose(handler CloseHandler) {
+	proxy.closeHandlers = append(proxy.closeHandlers, handler)
+}
+
+// Call closeHandlers
+func (proxy *ProxyHttpServer) callOnClose(ctx *ProxyCtx) {
+	for _, h := range proxy.closeHandlers {
+		h(ctx)
+	}
+}
 
 func copyHeaders(dst, src http.Header) {
 	for k, _ := range dst {
@@ -110,7 +125,7 @@ func (proxy *ProxyHttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		if resp == nil {
 			removeProxyHeaders(ctx, r)
 			resp, err = ctx.RoundTrip(r)
-			ctx.bytesUpstream += r.ContentLength
+			ctx.BytesUpstream += r.ContentLength
 			if err != nil {
 				ctx.Error = err
 				resp = proxy.filterResponse(nil, ctx)
@@ -142,7 +157,9 @@ func (proxy *ProxyHttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		if err := resp.Body.Close(); err != nil {
 			ctx.Warnf("Can't close response body %v", err)
 		}
-		ctx.bytesDownstream += nr
+		ctx.BytesDownstream += nr
+		proxy.callOnClose(ctx)
+
 		ctx.Logf("Copied %v bytes to client error=%v", nr, err)
 	}
 }
@@ -154,6 +171,7 @@ func NewProxyHttpServer() *ProxyHttpServer {
 		reqHandlers:   []ReqHandler{},
 		respHandlers:  []RespHandler{},
 		httpsHandlers: []HttpsHandler{},
+		closeHandlers: []CloseHandler{},
 		NonproxyHandler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "This is a proxy server. Does not respond to non-proxy requests.", 500)
 		}),
