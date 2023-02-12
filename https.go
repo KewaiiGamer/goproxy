@@ -135,17 +135,7 @@ func (proxy *ProxyHttpServer) handleHttps(w http.ResponseWriter, r *http.Request
 		}
 		ctx.Logf("Accepting CONNECT to %s", host)
 		proxyClient.Write([]byte("HTTP/1.0 200 OK\r\n\r\n"))
-		targetTCP, targetOK := targetSiteCon.(halfClosable)
-		proxyClientTCP, clientOK := proxyClient.(halfClosable)
-		if targetOK && clientOK {
-			pipeAndClose(ctx, proxyClientTCP, targetTCP)
-		} else {
-			go func() {
-				pipeAndWarn(ctx, targetSiteCon, proxyClient)
-				proxyClient.Close()
-				targetSiteCon.Close()
-			}()
-		}
+		pipeAndClose(ctx, targetSiteCon, proxyClient)
 	case ConnectHijack:
 		todo.Hijack(r, proxyClient, ctx)
 	case ConnectHTTPMitm:
