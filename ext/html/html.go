@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strings"
 
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
 	"github.com/elazarl/goproxy"
+	"github.com/rogpeppe/go-charset/charset"
+	_ "github.com/rogpeppe/go-charset/data"
 )
 
 var IsHtml goproxy.RespCondition = goproxy.ContentTypeIs("text/html")

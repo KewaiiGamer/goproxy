@@ -1,8 +1,8 @@
 package regretable_test
 
 import (
-	. "github.com/elazarl/goproxy/regretable"
 	"bytes"
+	. "github.com/elazarl/goproxy/regretable"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -21,7 +21,7 @@ func TestRegretableReader(t *testing.T) {
 
 	s, _ := ioutil.ReadAll(mb)
 	if string(s) != word {
-		t.Errorf("Uncommited read is gone, [%d,%d] actual '%v' expected '%v'\n", len(s), len(word), string(s), word)
+		t.Errorf("Uncommitted read is gone, [%d,%d] actual '%v' expected '%v'\n", len(s), len(word), string(s), word)
 	}
 }
 
@@ -37,7 +37,7 @@ func TestRegretableEmptyRead(t *testing.T) {
 
 	s, err := ioutil.ReadAll(mb)
 	if string(s) != word {
-		t.Error("Uncommited read is gone, actual:", string(s), "expected:", word, "err:", err)
+		t.Error("Uncommitted read is gone, actual:", string(s), "expected:", word, "err:", err)
 	}
 }
 
@@ -57,7 +57,7 @@ func TestRegretableAlsoEmptyRead(t *testing.T) {
 
 	s, _ := ioutil.ReadAll(mb)
 	if string(s) != word {
-		t.Error("Uncommited read is gone", string(s), "expected", word)
+		t.Error("Uncommitted read is gone", string(s), "expected", word)
 	}
 }
 
@@ -73,7 +73,7 @@ func TestRegretableRegretBeforeRead(t *testing.T) {
 
 	s, err := ioutil.ReadAll(mb)
 	if string(s) != "678" {
-		t.Error("Uncommited read is gone", string(s), len(string(s)), "expected", "678", len("678"), "err:", err)
+		t.Error("Uncommitted read is gone", string(s), len(string(s)), "expected", "678", len("678"), "err:", err)
 	}
 }
 
@@ -89,19 +89,19 @@ func TestRegretableFullRead(t *testing.T) {
 
 	s, _ := ioutil.ReadAll(mb)
 	if string(s) != word {
-		t.Error("Uncommited read is gone", string(s), len(string(s)), "expected", word, len(word))
+		t.Error("Uncommitted read is gone", string(s), len(string(s)), "expected", word, len(word))
 	}
 }
 
 func assertEqual(t *testing.T, expected, actual string) {
-	if expected!=actual {
+	if expected != actual {
 		t.Fatal("Expected", expected, "actual", actual)
 	}
 }
 
 func assertReadAll(t *testing.T, r io.Reader) string {
 	s, err := ioutil.ReadAll(r)
-	if err!=nil {
+	if err != nil {
 		t.Fatal("error when reading", err)
 	}
 	return string(s)
