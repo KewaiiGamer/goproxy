@@ -1,4 +1,4 @@
-module github.com/elazarl/goproxy/ext
+module github.com/KewaiiGamer/goproxy/ext
 
 go 1.19
 
